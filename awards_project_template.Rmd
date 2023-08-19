@@ -1,0 +1,240 @@
+---
+title: 'Analyst Intern, Data Science & Solutions Project'
+output: html_document
+author: "YOUR NAME HERE"
+date: "`r format(Sys.Date(), '%m/%d/%y')`"
+---
+
+```{r set options, include=FALSE}
+# DO NOT CHANGE THE LINE BELOW 
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+``` {css styling, echo=FALSE}
+
+<style>
+.tocify {
+max-width: 175px !important;
+}
+</style>
+
+<style>
+.main-container {
+width: 100%;
+max-width: 940px;
+margin-left: 250px;
+margin-right: auto;
+}
+</style>
+
+<style>
+.red-header {
+  color: red;
+}
+</style>
+
+```
+
+```{r logo, echo = FALSE}
+
+htmltools::img(src = 'https://cdn.nba.com/logos/nba/1610612760/primary/L/logo.svg',
+                height = '250px',
+                alt = 'logo',
+                style = 'position: fixed; top: -40px; left: 5px;')
+```
+
+
+# Introduction  
+
+The purpose of this project is to gauge your technical skills and problem solving ability by working through something similar to a real NBA data science project. You will work your way through this R Markdown document, answering questions as you go along. Please begin by adding your name to the "author" key in the YAML header. When you're finished with the document, come back and type your answers into the answer key at the top. Please leave all your work below and have your answers where indicated below as well. Please note that we will be reviewing your code so make it clear, concise and avoid long printouts. Feel free to add in as many new code chunks as you'd like.
+
+Remember that we will be grading the quality of your code and visuals alongside the correctness of your answers. Please try to use the tidyverse as much as possible (instead of base R and explicit loops.)  
+
+**Note:**    
+
+**Throughout this document, any `season` column represents the year each season started. For example, the 2015-16 season will be in the dataset as 2015. For most of the rest of the project, we will refer to a season by just this number (e.g. 2015) instead of the full text (e.g. 2015-16).**   
+
+<h1 class="red-header">Answers</h1>  
+
+## Part 1      
+
+**Question 1:**   
+
+- 1st Team: XX.X points per game  
+- 2nd Team: XX.X points per game  
+- 3rd Team: XX.X points per game  
+- All-Star: XX.X points per game   
+
+**Question 2:** XX.X Years  
+
+**Question 3:** 
+
+- Elite: X players.  
+- All-Star: X players.  
+- Starter: X players.  
+- Rotation: X players.  
+- Roster: X players.  
+- Out of League: X players.  
+
+**Open Ended Modeling Question:** Please show your work and leave all responses below in the document.
+
+
+## Part 2  
+
+**Question 1:** XX.X%   
+**Question 2:** Written question, put answer below in the document.    
+**Question 3:** Written question, put answer below in the document.    
+  
+
+# Setup and Data    
+
+```{r load data, message = F, warning = F}
+library(tidyverse)
+# Note, you will likely have to change these paths. If your data is in the same folder as this project, 
+# the paths will likely be fixed for you by deleting ../../Data/awards_project/ from each string.
+awards <- read_csv("../../Data/awards_project/awards_data.csv")
+player_data <- read_csv("../../Data/awards_project/player_stats.csv")
+team_data <- read_csv("../../Data/awards_project/team_stats.csv")
+rebounding_data <- read_csv("../../Data/awards_project/team_rebounding_data_22.csv")
+```
+
+## Part 1 -- Awards  
+
+In this section, you're going to work with data relating to player awards and statistics. You'll start with some data manipulation questions and work towards building a model to predict broad levels of career success.  
+
+### Question 1  
+
+**QUESTION:** What is the average number of points per game for players in the 2007-2021 seasons who won All NBA First, Second, and Third teams (**not** the All Defensive Teams), as well as for players who were in the All-Star Game (**not** the rookie all-star game)?
+
+```{r}
+# Here and for all future questions, feel free to add as many code chunks as you like. Do NOT put echo = F though, we'll want to see your code.
+```
+
+<span style="color:red">**ANSWER 1:**</span>  
+
+1st Team: XX.X points per game  
+2nd Team: XX.X points per game  
+3rd Team: XX.X points per game  
+All-Star: XX.X points per game   
+
+
+### Question 2  
+
+**QUESTION:** What was the average number of years of experience in the league it takes for players to make their first All NBA Selection (1st, 2nd, or 3rd team)? Please limit your sample to players drafted in 2007 or later who did eventually go on to win at least one All NBA selection. For example:
+
+- Luka Doncic is in the dataset as 2 years. He was drafted in 2018 and won his first All NBA award in 2019 (which was his second season).  
+- LeBron James is not in this dataset, as he was drafted prior to 2007.  
+- Lu Dort is not in this dataset, as he has not received any All NBA honors.  
+
+```{r}
+
+```
+
+<span style="color:red">**ANSWER 2:**</span>  
+
+XX.X Years  
+
+
+## Data Cleaning Interlude  
+
+You're going to work to create a dataset with a "career outcome" for each player, representing the highest level of success that the player achieved for **at least two** seasons *after his first four seasons in the league* (examples to follow below!). To do this, you'll start with single season level outcomes. On a single season level, the outcomes are:  
+
+- Elite: A player is "Elite" in a season if he won any All NBA award (1st, 2nd, or 3rd team), MVP, or DPOY in that season.    
+- All-Star: A player is "All-Star" in a season if he was selected to be an All-Star that season.   
+- Starter:  A player is a "Starter" in a season if he started in at least 41 games in the season OR if he played at least 2000 minutes in the season.    
+- Rotation:  A player is a "Rotation" player in a season if he played at least 1000 minutes in the season.   
+- Roster:  A player is a "Roster" player in a season if he played at least 1 minute for an NBA team but did not meet any of the above criteria.     
+- Out of the League: A player is "Out of the League" if he is not in the NBA in that season.   
+
+We need to make an adjustment for determining Starter/Rotation qualifications for a few seasons that didn't have 82 games per team. Assume that there were 66 possible games in the 2011 lockout season and 72 possible games in each of the 2019 and 2020 seasons that were shortened due to covid. Specifically, if a player played 900 minutes in 2011, he **would** meet the rotation criteria because his final minutes would be considered to be 900 * (82/66) = 1118. Please use this math for both minutes and games started, so a player who started 38 games in 2019 or 2020 would be considered to have started 38 * (82/72) = 43 games, and thus would qualify for starting 41. Any answers should be calculated assuming you round the multiplied values to the nearest whole number.
+
+Note that on a season level, a player's outcome is the highest level of success he qualifies for in that season. Thus, since Shai Gilgeous-Alexander was both All-NBA 1st team and an All-Star last year, he would be considered to be "Elite" for the 2022 season, but would still qualify for a career outcome of All-Star if in the rest of his career he made one more All-Star game but no more All-NBA teams. Note this is a hypothetical, and Shai has not yet played enough to have a career outcome.   
+
+Examples:  
+
+- A player who enters the league as a rookie and has season outcomes of Roster (1), Rotation (2), Rotation (3), Roster (4), Roster (5), Out of the League (6+) would be considered "Out of the League," because after his first four seasons, he only has a single Roster year, which does not qualify him for any success outcome.  
+- A player who enters the league as a rookie and has season outcomes of Roster (1), Rotation (2), Starter (3), Starter (4), Starter (5), Starter (6), All-Star (7), Elite (8), Starter (9) would be considered "All-Star," because he had at least two seasons after his first four at all-star level of production or higher.  
+- A player who enters the league as a rookie and has season outcomes of Roster (1), Rotation (2), Starter (3), Starter (4), Starter (5), Starter (6), Rotation (7), Rotation (8), Roster (9) would be considered a "Starter" because he has two seasons after his first four at a starter level of production. 
+
+### Question 3  
+
+**QUESTION:** There are 73 players in the `player_data` dataset who have 2010 listed as their draft year. How many of those players have a **career** outcome in each of the 6 buckets?  
+
+```{r}
+
+```
+
+<span style="color:red">**ANSWER 3:**</span>    
+
+Elite: X players.  
+All-Star: X players.  
+Starter: X players.  
+Rotation: X players.  
+Roster: X players.  
+Out of League: X players.  
+
+### Open Ended Modeling Question   
+
+In this question, you will work to build a model to predict a player's career outcome based on information up through the first four years of his career. 
+
+This question is intentionally left fairly open ended, but here are some notes and specifications.  
+
+1. We know modeling questions can take a long time, and that qualified candidates will have different levels of experience with "formal" modeling. Don't be discouraged. It's not our intention to make you spend excessive time here. If you get your model to a good spot but think you could do better by spending a lot more time, you can just write a bit about your ideas for future improvement and leave it there. Further, we're more interested in your thought process and critical thinking than we are in specific modeling techniques. Using smart features is more important than using fancy mathematical machinery, and a successful candidate could use a simple regression approach. 
+
+2. You may use any data provided in this project, but please do not bring in any external sources of data. Note that while most of the data provided goes back to 2007, All NBA and All Rookie team voting is only included back to 2011.  
+
+3. A player needs to complete at least three additional seasons after their first four to be considered as having a distinct career outcome for our dataset. (We are using 3+ instead of 2+ just to give each player a little more time to accumulate high level seasons before we classify his career). Because the dataset in this project ends in 2021, this means that a player would need to have had the chance to play in the '21, '20, and '19 seasons after his first four years, and thus his first four years would have been '18, '17, '16, and '15. **For this reason, limit your training data to players who were drafted in or before the 2015 season.** Karl-Anthony Towns was the #1 pick in that season.  
+
+4. Once you build your model, predict on all players who were drafted in 2018-2021 (They have between 1 and 4 seasons of data available and have not yet started accumulating seasons that inform their career outcome).  
+
+5. You can predict a single career outcome for each player, but it's better if you can predict the probability that each player falls into each outcome bucket.    
+
+6. Include, as part of your answer:  
+  - A brief written overview of how your model works, targeted towards a decision maker in the front office without a strong statistical background. 
+  - What you view as the strengths and weaknesses of your model.  
+  - How you'd address the weaknesses if you had more time and or more data.  
+  - A ggplot or ggplotly visualization highlighting some part of your modeling process, the model itself, or your results.  
+  - Your predictions for Shai Gilgeous-Alexander, Zion Williamson, James Wiseman, and Josh Giddey.  
+  - (Bonus!) An html table (for example, see the package `reactable`) containing all predictions for the players drafted in 2019-2021.  
+
+
+```{r}
+
+```
+
+## Part 2 -- Predicting Team Stats  
+
+In this section, we're going to introduce a simple way to predict team offensive rebound percent in the next game and then discuss ways to improve those predictions.  
+ 
+### Question 1   
+
+Using the `rebounding_data` dataset, we'll predict a team's next game's offensive rebounding percent to be their average offensive rebounding percent in all prior games. On a single game level, offensive rebounding percent is the number of offensive rebounds divided by their number offensive rebound "chances" (essentially the team's missed shots). On a multi-game sample, it should be the total number of offensive rebounds divided by the total number of offensive rebound chances.    
+
+Please calculate what OKC's predicted offensive rebound percent is for game 81 in the data. That is, use games 1-80 to predict game 81.  
+
+```{r}
+
+```
+
+<span style="color:red">**ANSWER 1:**</span>    
+
+XX.X% 
+
+### Question 2  
+
+There are a few limitations to the method we used above. For example, if a team has a great offensive rebounder who has played in most games this season but will be out due to an injury for the next game, we might reasonably predict a lower team offensive rebound percent for the next game.  
+
+Please discuss how you would think about changing our original model to better account for missing players. You do not have to write any code or implement any changes, and you can assume you have access to any reasonable data that isn't provided in this project. Try to be clear and concise with your answer.  
+
+<span style="color:red">**ANSWER 2:**</span>  
+
+
+### Question 3  
+
+In question 2, you saw and discussed how to deal with one weakness of the model. For this question, please write about 1-3 other potential weaknesses of the simple average model you made in question 1 and discuss how you would deal with each of them. You may either explain a weakness and discuss how you'd fix that weakness, then move onto the next issue, or you can start by explaining multiple weaknesses with the original approach and discuss one overall modeling methodology you'd use that gets around most or all of them. Again, you do not need to write any code or implement any changes, and you can assume you have access to any reasonable data that isn't provided in this project. Try to be clear and concise with your answer.  
+
+<span style="color:red">**ANSWER 3:**</span>    
+
+
+
+
